@@ -34,5 +34,6 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         emit(UsersError(e.toString()));
       }
     });
+    add(FetchUsers());
   }
 }

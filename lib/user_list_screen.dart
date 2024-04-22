@@ -12,9 +12,12 @@ class UserListScreen extends StatelessWidget {
     final apiService = ApiService(dio);
 
     return BlocProvider(
-      create: (context) => UserBloc(apiService)..add(FetchUsers()),
+      create: (context) => UserBloc(apiService),
       child: Scaffold(
-        appBar: AppBar(title: Text("Users"),centerTitle: true,),
+        appBar: AppBar(
+          title: Text("Users"),
+          centerTitle: true,
+        ),
         body: BlocBuilder<UserBloc, UserState>(
           builder: (context, state) {
             if (state is UsersLoading) {
