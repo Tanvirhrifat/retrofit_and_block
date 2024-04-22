@@ -1,50 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_retrofit_bloc/bloc/user_bloc.dart';
 import 'api_service.dart';
-import 'user.dart';
+// import 'user.dart';
+import 'package:dio/dio.dart';
 
-class UserListScreen extends StatefulWidget {
-  @override
-  _UserListScreenState createState() => _UserListScreenState();
-}
-
-class _UserListScreenState extends State<UserListScreen> {
-  late ApiService apiService;
-  late Future<List<User>> usersFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    final dio = Dio();
-    apiService = ApiService(dio);
-    usersFuture = apiService.getUsers();
-  }
-
+class UserListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Users")),
-      body: FutureBuilder<List<User>>(
-        future: usersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          } else {
-            final users = snapshot.data!;
-            return ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  title: Text(user.name),
-                  subtitle: Text(user.email),
-                );
-              },
-            );
-          }
-        },
+    final dio = Dio();
+    final apiService = ApiService(dio);
+
+    return BlocProvider(
+      create: (context) => UserBloc(apiService)..add(FetchUsers()),
+      child: Scaffold(
+        appBar: AppBar(title: Text("Users"),centerTitle: true,),
+        body: BlocBuilder<UserBloc, UserState>(
+          builder: (context, state) {
+            if (state is UsersLoading) {
+              return Center(child: CircularProgressIndicator());
+            } else if (state is UsersError) {
+              return Center(child: Text("Error: ${state.error}"));
+            } else if (state is UsersLoaded) {
+              final users = state.users;
+              return ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return ListTile(
+                    title: Text(user.name),
+                    subtitle: Text(user.email),
+                  );
+                },
+              );
+            } else {
+              return Center(child: Text("Unknown state"));
+            }
+          },
+        ),
       ),
     );
   }
